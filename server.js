@@ -378,7 +378,9 @@ app.post('/api/parent/reset-timer', requireParent, (_req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
+// 호스팅 컨테이너는 0.0.0.0 바인딩을 요구한다.
+// 호스트를 생략하면 환경에 따라 IPv6 에만 붙어 "포트를 못 찾음"으로 배포가 실패할 수 있다.
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n  우리만의 세상 RPG — http://localhost:${PORT}`);
   if (ai) {
     console.log(`  모드: AI 연결됨 — ${ai.label}`);
