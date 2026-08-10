@@ -11,7 +11,9 @@ services:
     name: our-world-rpg
     runtime: node
     plan: free
-    region: singapore          # 한국에서 가장 가까운 리전
+    # region 은 지정하지 않는다 (기본값 사용).
+    # 무료 플랜에서 못 쓰는 리전을 적으면 Blueprint 적용 자체가 실패한다.
+    # 한국에서 더 빠르게 하고 싶으면 서비스 생성 후 대시보드에서 바꾸세요.
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /healthz
