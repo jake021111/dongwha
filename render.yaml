@@ -1,0 +1,44 @@
+# Render 배포 설정 (https://render.com)
+#
+# 이 파일이 저장소에 있으면 Render 가 New → Blueprint 에서 바로 읽어 갑니다.
+# GEMINI_API_KEY 만 대시보드에서 직접 넣으면 됩니다 (sync: false).
+#
+# 주의: 무료 플랜은 15분간 요청이 없으면 잠들고, 다음 요청 때 깨어나는 데
+# 30~60초가 걸립니다. 잠들면 진행 중이던 모험(메모리 상태)도 사라집니다.
+
+services:
+  - type: web
+    name: our-world-rpg
+    runtime: node
+    plan: free
+    region: singapore          # 한국에서 가장 가까운 리전
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+
+      # 키는 저장소에 넣지 않는다 → Render 대시보드에서 직접 입력
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+
+      # 공개 링크 모드: 놀이 시간은 모험별로, 부모 설정은 잠금
+      - key: PUBLIC_DEMO
+        value: "1"
+
+      # 여러 사람이 들어와도 무료 할당량을 지키기 위한 상한
+      - key: RPM_PER_IP
+        value: "30"
+      - key: AI_CALLS_PER_HOUR
+        value: "400"
+
+      - key: DAILY_LIMIT_MINUTES
+        value: "20"
+      - key: SAFETY_LLM_CHECK
+        value: "1"

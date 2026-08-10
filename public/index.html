@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>우리만의 세상 RPG</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌈</text></svg>" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ───────── 표지 ───────── -->
+<section class="screen active" id="screen-title">
+  <div class="book-cover">
+    <span class="tape tape-tl" aria-hidden="true"></span>
+    <span class="tape tape-br" aria-hidden="true"></span>
+    <div class="cover-art" aria-hidden="true">
+      <span class="c1">🌳</span><span class="c2">🌈</span><span class="c3">⭐</span>
+    </div>
+    <h1>우리만의<br />세 상</h1>
+    <p class="cover-sub">— 내가 만든 친구랑 떠나는 모험 —</p>
+  </div>
+
+  <button class="btn primary xl" id="btn-start">모험 시작하기 <span aria-hidden="true">▸</span></button>
+  <button class="btn quiet" id="btn-parent-open">👨‍👩‍👧 부모님 방</button>
+  <p class="mode-badge" id="mode-badge"></p>
+</section>
+
+<!-- ───────── 캐릭터 만들기 ───────── -->
+<section class="screen" id="screen-make">
+  <header class="topbar">
+    <button class="icon-btn" data-back="screen-title" aria-label="뒤로">◂</button>
+    <h2>내 친구 만들기</h2>
+  </header>
+
+  <div class="scroller">
+    <section class="sheet">
+      <h3><i class="num">1</i> 어떤 모습일까요?</h3>
+      <div class="grid pick" id="pick-appearance"></div>
+    </section>
+
+    <section class="sheet">
+      <h3><i class="num">2</i> 이름은 무엇인가요?</h3>
+      <div class="name-row">
+        <input id="name-input" type="text" maxlength="10" inputmode="text"
+               placeholder="이름" autocomplete="off" />
+        <button class="icon-btn shuffle" id="btn-dice" aria-label="이름 골라 주기">🎲</button>
+      </div>
+      <div class="chips" id="name-chips"></div>
+      <p class="hint" id="name-hint">진짜 이름 말고 별명을 써도 좋아요.</p>
+    </section>
+
+    <section class="sheet accent">
+      <h3><i class="num">3</i> 내 친구 이야기 <small>(안 써도 괜찮아요)</small></h3>
+      <p class="lead">어떤 친구인지 마음대로 알려 주세요. 이야기에 그대로 나와요!</p>
+      <div class="desc-wrap">
+        <textarea id="desc-input" maxlength="80" rows="3"
+                  placeholder="예) 무지개 날개가 달린 파란 고양이인데 노래를 아주 잘해요"></textarea>
+        <button class="icon-btn mic" id="btn-mic" aria-label="말해서 쓰기">🎤</button>
+      </div>
+      <div class="desc-foot">
+        <span class="counter" id="desc-count">0 / 80</span>
+        <span class="mic-state" id="mic-state"></span>
+      </div>
+      <div class="chips" id="desc-chips"></div>
+      <p class="hint" id="desc-hint"></p>
+    </section>
+
+    <section class="sheet">
+      <h3><i class="num">4</i> 어떤 성격인가요? <small>(1~2개)</small></h3>
+      <div class="grid pick" id="pick-trait"></div>
+    </section>
+  </div>
+
+  <button class="btn primary xl" id="btn-to-world" disabled>다음 <span aria-hidden="true">▸</span></button>
+</section>
+
+<!-- ───────── 세계 고르기 ───────── -->
+<section class="screen" id="screen-world">
+  <header class="topbar">
+    <button class="icon-btn" data-back="screen-make" aria-label="뒤로">◂</button>
+    <h2>어디로 갈까요?</h2>
+  </header>
+  <div class="scroller">
+    <div class="grid worlds" id="pick-world"></div>
+  </div>
+  <button class="btn primary xl" id="btn-begin" disabled>출발! <span aria-hidden="true">🚀</span></button>
+</section>
+
+<!-- ───────── 모험 ───────── -->
+<section class="screen" id="screen-play">
+  <header class="topbar play">
+    <button class="icon-btn" id="btn-quit" aria-label="처음으로">🏠</button>
+    <div class="stat-strip" id="stat-strip"></div>
+    <button class="icon-btn" id="btn-parent-open-2" aria-label="부모님 방">👨‍👩‍👧</button>
+  </header>
+
+  <div class="frame">
+    <span class="tape tape-tl" aria-hidden="true"></span>
+    <span class="tape tape-tr" aria-hidden="true"></span>
+    <div class="stage" id="stage">
+      <div class="stage-sky" id="stage-sky"></div>
+      <div class="stage-ground" aria-hidden="true"></div>
+      <div class="stage-layer props" id="stage-props"></div>
+      <div class="stage-layer actors" id="stage-actors"></div>
+    </div>
+  </div>
+
+  <div class="page">
+    <button class="speak-btn" id="btn-speak" aria-label="다시 읽어 주기">🔊</button>
+    <p id="narration">이야기를 준비하고 있어요…</p>
+  </div>
+
+  <div class="choices" id="choices"></div>
+
+  <div class="loading" id="loading" hidden>
+    <div class="dots"><span></span><span></span><span></span></div>
+    <p>이야기꾼이 생각 중이에요…</p>
+  </div>
+
+  <div class="sticker-shelf" id="sticker-shelf"></div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+
+<!-- ───────── 시간 종료 ───────── -->
+<div class="overlay" id="overlay-time" hidden>
+  <div class="modal">
+    <div class="big-emoji">🌙</div>
+    <h2>오늘의 모험 끝!</h2>
+    <p>내일 또 만나요. 푹 쉬어요!</p>
+    <button class="btn primary" id="btn-time-ok">알겠어요</button>
+  </div>
+</div>
+
+<!-- ───────── 부모 게이트 ───────── -->
+<div class="overlay" id="overlay-gate" hidden>
+  <div class="modal">
+    <h2>부모님 확인</h2>
+    <p class="gate-q" id="gate-question">…</p>
+    <input id="gate-answer" type="number" inputmode="numeric" placeholder="답" />
+    <p class="err" id="gate-err"></p>
+    <div class="row">
+      <button class="btn quiet" id="btn-gate-cancel">취소</button>
+      <button class="btn primary" id="btn-gate-ok">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 부모 대시보드 ───────── -->
+<div class="overlay" id="overlay-parent" hidden>
+  <div class="modal wide">
+    <div class="row between">
+      <h2>부모님 방</h2>
+      <button class="btn quiet sm" id="btn-parent-close">닫기</button>
+    </div>
+
+    <section class="sheet">
+      <h3>오늘 놀이 시간</h3>
+      <p class="usage" id="parent-usage">—</p>
+      <label class="field">하루 제한 (분)
+        <input id="limit-input" type="number" min="5" max="180" step="5" />
+      </label>
+      <label class="field check">
+        <input id="classifier-input" type="checkbox" />
+        생성 내용 모델 재검사 (더 안전, 조금 느림)
+      </label>
+      <p class="hint" id="demo-note" hidden>
+        공개 데모라 설정은 잠겨 있어요. 한 사람의 변경이 모두에게 적용되기 때문입니다.
+      </p>
+      <div class="row">
+        <button class="btn quiet sm" id="btn-reset-timer">시간 초기화</button>
+        <button class="btn primary sm" id="btn-save-settings">저장</button>
+      </div>
+    </section>
+
+    <section class="sheet">
+      <h3>아이가 쓴 캐릭터 설명</h3>
+      <ul class="log" id="parent-desc"></ul>
+    </section>
+
+    <section class="sheet">
+      <h3>안전 설계 <small id="blocked-count"></small></h3>
+      <ul class="layers" id="safety-layers"></ul>
+    </section>
+
+    <section class="sheet">
+      <h3>플레이 로그</h3>
+      <ul class="log" id="parent-log"></ul>
+    </section>
+  </div>
+</div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
