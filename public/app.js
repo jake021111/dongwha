@@ -197,11 +197,20 @@ function renderPicker(root, items, onPick, { multi = false } = {}) {
 }
 
 // ───────────────────────── 캐릭터 만들기 ─────────────────────────
+// 서버(src/safety.js)와 같은 규칙 — 길이만 제한하고 위험한 문자만 막는다.
+// (최종 판단은 항상 서버가 한다. 여기 검사는 즉시 안내를 위한 것.)
+const FORBIDDEN_CHARS = /[\u0000-\u001F\u007F<>`]/;
+
 function onNameInput() {
   const v = $('name-input').value.trim();
   const hint = $('name-hint');
-  const bad = v && !/^[가-힣a-zA-Z0-9 ]{1,10}$/.test(v);
-  hint.textContent = bad ? '이름은 한글이나 영어로 10글자까지 쓸 수 있어요.' : '진짜 이름 말고 별명을 써도 좋아요.';
+  const tooLong = [...v].length > 10;
+  const badChar = FORBIDDEN_CHARS.test(v);
+  const bad = v && (tooLong || badChar);
+
+  hint.textContent = tooLong ? '이름은 10글자까지 쓸 수 있어요.'
+    : badChar ? '쓸 수 없는 기호가 있어요. 빼고 다시 써 볼까요?'
+    : '진짜 이름 말고 별명을 써도 좋아요.';
   hint.classList.toggle('bad', Boolean(bad));
   state.name = bad ? '' : v;
   syncMakeButton();

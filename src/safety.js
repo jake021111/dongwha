@@ -27,8 +27,8 @@ const BANNED_PATTERNS = [
   /혼자 집을 나가|낯선 사람을 따라|불을 붙여|높은 곳에서 뛰어|약을 먹어/,
 ];
 
-// 자유 입력(이름) 화이트리스트: 한글/영문/숫자/공백만, 1~10자
-const NAME_ALLOWED = /^[가-힣a-zA-Z0-9 ]{1,10}$/;
+// 이름도 같은 원칙: 길이만 제한하고, 위험한 문자만 막는다.
+const NAME_MAX = 10;
 
 const NAME_BLOCKLIST = [
   /씨발|시발|병신|좆|섹스|자지|보지|개새|미친놈|죽어/i,
@@ -39,8 +39,11 @@ const NAME_BLOCKLIST = [
 export function validateName(raw) {
   const name = String(raw ?? '').trim().replace(/\s+/g, ' ');
   if (!name) return { ok: false, reason: '이름을 정해 주세요.' };
-  if (!NAME_ALLOWED.test(name)) {
-    return { ok: false, reason: '이름은 한글이나 영어로 10글자까지 쓸 수 있어요.' };
+  if ([...name].length > NAME_MAX) {
+    return { ok: false, reason: `이름은 ${NAME_MAX}글자까지 쓸 수 있어요.` };
+  }
+  if (FORBIDDEN_CHARS.test(name)) {
+    return { ok: false, reason: '쓸 수 없는 기호가 있어요. 빼고 다시 써 볼까요?' };
   }
   if (NAME_BLOCKLIST.some((re) => re.test(name))) {
     return { ok: false, reason: '그 이름은 쓸 수 없어요. 다른 이름을 골라 볼까요?' };
@@ -56,8 +59,17 @@ export function validateName(raw) {
 
 export const DESCRIPTION_MAX = 80;
 
-// 한글(자모 포함)·영문·숫자·공백과 아주 기본적인 문장부호만 허용
-const DESC_ALLOWED = /^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 .,!?~'"()\-]*$/;
+/**
+ * 허용 목록을 좁게 잡으면 이모지·… ·/ ·% 같은 멀쩡한 입력까지 막혀서
+ * 아이가 무엇을 고쳐야 할지 알 수 없다. 그래서 '실제로 위험한 것'만 막는다.
+ *
+ *  - 제어 문자        : 페이로드 조작
+ *  - < > `           : 프롬프트에서 <아이가_쓴_설명> 태그를 흉내 내 탈출하려는 시도
+ *
+ * 그 밖의 문자(이모지, 문장부호, 다른 언어)는 통과시키고,
+ * 내용의 적절성은 금칙어·개인정보·주입 패턴과 모델 검사에 맡긴다.
+ */
+const FORBIDDEN_CHARS = /[\u0000-\u001F\u007F<>`]/;
 
 // 이야기꾼의 규칙을 바꾸려는 시도(프롬프트 주입) 차단
 const INJECTION_PATTERNS = [
@@ -88,11 +100,11 @@ export function validateDescription(raw) {
   const text = String(raw ?? '').trim().replace(/\s+/g, ' ');
   if (!text) return { ok: true, value: '' };
 
-  if (text.length > DESCRIPTION_MAX) {
+  if ([...text].length > DESCRIPTION_MAX) {
     return { ok: false, reason: `조금만 짧게 써 주세요. (${DESCRIPTION_MAX}글자까지)` };
   }
-  if (!DESC_ALLOWED.test(text)) {
-    return { ok: false, reason: '한글이나 영어로 써 주세요.' };
+  if (FORBIDDEN_CHARS.test(text)) {
+    return { ok: false, reason: '쓸 수 없는 기호가 있어요. 빼고 다시 써 볼까요?' };
   }
   if (NAME_BLOCKLIST.some((re) => re.test(text))) {
     return { ok: false, reason: '그 말은 쓸 수 없어요. 다르게 써 볼까요?' };
